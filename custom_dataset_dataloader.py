@@ -154,8 +154,6 @@ class CustomDataset():
 
         cls_dir = sorted(os.listdir(phase_dir))
 
-        print(phase_dir)
-
         for index, cls in enumerate(classes):
             # cls_path = os.path.join(phase_dir, str(cls.item()))
             if is_face:
