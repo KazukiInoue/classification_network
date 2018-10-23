@@ -80,6 +80,8 @@ def validation(epoch, validloader):
 
 def main():
 
+    print('hoge')
+
     total_iter = 0
     if opt.data_type == 'raw_image':
         trainloader = create_dataloader(opt, is_train=True)
