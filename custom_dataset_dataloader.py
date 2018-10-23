@@ -88,11 +88,8 @@ class CustomDataset():
             else:
                 neg_classes = classes[self.n_target:]
 
-        print('begin')
         tar_paths, tar_labels = self.make_dataset(tar_classes, self.data_dir, is_neg=False)
-        print('middle')
         tmp_neg_paths, neg_labels = self.make_dataset(neg_classes, self.data_dir, is_neg=True)
-        print('end')
 
         if opt.not_use_face_data:
             pass
@@ -111,9 +108,6 @@ class CustomDataset():
 
             tar_labels = torch.cat([tar_labels, face_labels], 0)
             tar_paths += face_paths
-
-            print(len(tar_paths))
-            print(len(face_paths))
 
         neg_paths = []
 
