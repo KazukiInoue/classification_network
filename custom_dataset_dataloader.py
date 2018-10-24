@@ -136,16 +136,16 @@ class CustomDataset():
         transform_list = []
 
         if opt.phase == 'train':
-            transform_list.append(transforms.Scale(256, Image.BICUBIC))
+            transform_list.append(transforms.Scale([256, 256], Image.BICUBIC))
             transform_list.append(transforms.RandomCrop(224))
         else:
-            transform_list.append(transforms.Scale(224, Image.BICUBIC))
+            transform_list.append(transforms.Scale([224, 224], Image.BICUBIC))
 
         transform_list += [transforms.ToTensor(),
              transforms.Normalize((0.5, 0.5, 0.5),
                                   (0.5, 0.5, 0.5))]
 
-        self.transforms = transforms.Compose(transform_list)
+        self.transform = transforms.Compose(transform_list)
 
         # self.transform = transforms.Compose(
         #     [transforms.Scale(256, Image.BICUBIC),
