@@ -19,7 +19,6 @@ def tensor2im(image_tensor, imtype=np.uint8):
 
 def save_image(args, dataloader, phase):
 
-    save_root_dir = '../dataset/raw_image/'+args.data_type+phase
     save_root_dir = os.path.join('../dataset/raw_image', args.data_type, phase)
 
     for i, (data, label) in enumerate(dataloader):

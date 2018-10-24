@@ -133,13 +133,27 @@ class CustomDataset():
         self.paths = tar_paths + neg_paths
         self.labels = torch.cat([tar_labels, neg_labels], 0)
 
-        self.transform = transforms.Compose(
-            [transforms.Scale(256, Image.BICUBIC),
-             transforms.RandomCrop(224),
-             transforms.ToTensor(),
+        transform_list = []
+
+        if opt.phase == 'train':
+            transform_list.append(transforms.Scale(256, Image.BICUBIC))
+            transform_list.append(transforms.RandomCrop(224))
+        else:
+            transform_list.append(transforms.Scale(224, Image.BICUBIC))
+
+        transform_list += [transforms.ToTensor(),
              transforms.Normalize((0.5, 0.5, 0.5),
                                   (0.5, 0.5, 0.5))]
-        )
+
+        self.transforms = transforms.Compose(transform_list)
+
+        # self.transform = transforms.Compose(
+        #     [transforms.Scale(256, Image.BICUBIC),
+        #      transforms.RandomCrop(224),
+        #      transforms.ToTensor(),
+        #      transforms.Normalize((0.5, 0.5, 0.5),
+        #                           (0.5, 0.5, 0.5))]
+        # )
 
     def make_dataset(self, classes, phase_dir, is_neg, is_face=False):
         IMG_EXTENSIONS = [
@@ -160,6 +174,8 @@ class CustomDataset():
                 cls_path = phase_dir
             else:
                 cls_path = os.path.join(phase_dir, str(cls_dir[classes[index].item()]))
+
+            print('{} {}'.format(index, cls_path))
 
             for root, _, fnames in sorted(os.walk(cls_path)):
                 for fname in fnames:
