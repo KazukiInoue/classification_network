@@ -6,7 +6,9 @@ class TrainOptions(BaseOptions):
         BaseOptions.initialize(self)
         self.parser.add_argument('--phase', type=str, default='train', help='train, val, test, etc')
         self.parser.add_argument('--epochs', type=int, default=100,
-                            help='number of epochs to train (default: 50)')
+                            help='number of epochs to train (default: 100)')
+        self.parser.add_argument('--valid_size', type=float, default=0.2,
+                                 help='rate for split training data for validation')
         self.parser.add_argument('--save_latest_freq', type=int, default=200,
                                  help='frequency of saving the latest results (default: 20)')
         self.parser.add_argument('--save_epoch_freq', type=int, default=5,

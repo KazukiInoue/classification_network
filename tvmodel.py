@@ -151,11 +151,6 @@ class TVModel():
     # def load_network(self, network, network_label, epoch_label):
     def load_network(self, network, save_filename):
 
-        # if filename:
-        #     save_filename = '{}_{}.pth'.format(epoch_label, network_label)
-        # else:
-        #     save_filename = filename
-        #
         save_path = os.path.join(self.opt.save_dir, save_filename)
         network.load_state_dict(torch.load(save_path))
 

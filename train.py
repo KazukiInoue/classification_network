@@ -28,6 +28,8 @@ def train(epoch, total_iter, train_loader):
     train_loss = 0
     correct = 0
 
+    loader_size = len(train_loader.dataset) * (1 - opt.valid_size)
+
     for i, (data, labels) in enumerate(train_loader):
 
         if data.size(1) == 1:
@@ -46,13 +48,13 @@ def train(epoch, total_iter, train_loader):
         pred = model.outputs.max(1, keepdim=True)[1]
         correct += pred.eq(labels.view_as(pred)).sum().item()
 
-        print('epoch {}:, processed {} / {}'.format(epoch, epoch_iter, len(train_loader.dataset)))
+        print('epoch {}:, processed {} / {}'.format(epoch, epoch_iter, loader_size))
 
         if total_iter % opt.save_latest_freq == 0:
             print('saving the latest model (epoch {}, total_iteration {})'.format(epoch, total_iter))
             model.save_network('latest')
 
-    accuracy = torch.tensor(correct / (len(train_loader.dataset)) * 0.8).item()
+    accuracy = correct / loader_size
 
     print('epoch {} finish.'.format(epoch))
     writer.add_scalars('loss/training_epoch', {'Cross_Entropy': model.ce_loss.item(),
@@ -62,8 +64,11 @@ def train(epoch, total_iter, train_loader):
 
 
 def validation(epoch, valid_loader):
+
+    loader_size = opt.valid_size * len(valid_loader.dataset)
+
     with torch.no_grad():
-        # model.net.eval()
+        model.net.eval()
 
         val_loss = 0
         val_iter = 0
@@ -81,7 +86,7 @@ def validation(epoch, valid_loader):
             correct += pred.eq(labels.view_as(pred)).sum().item()
 
         val_loss /= val_iter
-        accuracy = torch.tensor(correct / (0.2*len(valid_loader.dataset))).item()
+        accuracy = correct / loader_size
 
         writer.add_scalars('loss/validation_epoch', {'Cross_Entropy': val_loss,
                                                      'Accuracy': accuracy}, epoch)
@@ -95,13 +100,7 @@ def main():
         train_loader = create_dataloader(opt, is_train=True)
         valid_loader = create_dataloader(opt, is_train=False)
     else:
-        # splited_dataloader = SplitedDataLoader
-        # splited_dataloader.initialize(opt, )
-        # # train_loader = SplitedDataLoader().initialize(opt, is_train=True)
-        # # train_loader = SplitedDataLoader()
-        # # train_loader.initialize(opt, is_train=True)
-        # valid_loader = SplitedDataLoader().initialize(opt, is_train=False)
-        train_loader, valid_loader = data_loader.get_train_valid_loader(opt, valid_size=0.2)
+        train_loader, valid_loader = data_loader.get_train_valid_loader(opt)
 
     for epoch in range(opt.epochs):
         total_iter = train(epoch, total_iter, train_loader)

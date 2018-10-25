@@ -36,8 +36,6 @@ class SplitedDataLoader():
 
 
 def get_train_valid_loader(opt,
-                           # is_train,
-                           valid_size=0.2,
                            random_seed=0,
                            shuffle=True,
                            show_sample=False,
@@ -68,7 +66,7 @@ def get_train_valid_loader(opt,
     - valid_loader: validation set iterator.
     """
     error_msg = "[!] valid_size should be in the range [0, 1]."
-    assert ((valid_size >= 0) and (valid_size <= 1)), error_msg
+    assert ((opt.valid_size >= 0) and (opt.valid_size <= 1)), error_msg
 
     # normalize = transforms.Normalize(
     #     mean=[0.4914, 0.4822, 0.4465],
@@ -119,7 +117,7 @@ def get_train_valid_loader(opt,
 
     num_train = len(train_dataset)
     indices = list(range(num_train))
-    split = int(np.floor(valid_size * num_train))
+    split = int(np.floor(opt.valid_size * num_train))
 
     if shuffle:
         np.random.seed(random_seed)

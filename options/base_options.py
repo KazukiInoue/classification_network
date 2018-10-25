@@ -21,9 +21,9 @@ class BaseOptions():
         self.parser.add_argument('--model', type=str, default='resnet50',
                             help='dimension of latent space [vgg11,13,16,19,13bn.. | resnet18,34,50,101,152 ]')
 
-        self.parser.add_argument('--n_all_classes', type=int, required=True,
+        self.parser.add_argument('--n_all_classes', type=int, default=100,
                             help='number of classes excluding face data')
-        self.parser.add_argument('--n_target_classes', type=int, required=True,
+        self.parser.add_argument('--n_target_classes', type=int, default=100,
                             help='number of target classes excluding face data')
         self.parser.add_argument('--n_negative_classes', type=int, default=0,
                             help='number of classes as negatives')
@@ -58,7 +58,9 @@ class BaseOptions():
 
         self.opt = self.parser.parse_args()
 
-        self.opt.log_dir = os.path.join(self.opt.runs_dir, self.opt.data_type, self.opt.name)
+        if self.opt.phase == 'train':
+            self.opt.log_dir = os.path.join(self.opt.runs_dir, self.opt.data_type, self.opt.name)
+
         self.opt.save_dir = os.path.join(self.opt.checkpoints_dir, self.opt.data_type, self.opt.name)
         if self.is_train:
             if os.path.exists(self.opt.save_dir):
