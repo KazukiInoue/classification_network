@@ -4,11 +4,10 @@ from PIL import Image
 
 import torch
 import torch.utils.data
-import torchvision
-from torchvision import datasets, transforms
 from tensorboardX import SummaryWriter
 
 import data_loader
+from data_loader import SplitedDataLoader
 from options.train_options import TrainOptions
 from tvmodel import TVModel
 from custom_dataset_dataloader import create_dataloader
@@ -27,6 +26,7 @@ def train(epoch, total_iter, train_loader):
     model.net.train()
     epoch_iter = 0
     train_loss = 0
+    correct = 0
 
     for i, (data, labels) in enumerate(train_loader):
 
@@ -43,9 +43,8 @@ def train(epoch, total_iter, train_loader):
 
         train_loss += model.ce_loss.item()
 
-        # if (i+1) % 10 == 0:
-        #     writer.add_scalar('loss/train_CrossEntropy_iteration', train_loss / 10, total_iter)
-        #     train_loss = 0
+        pred = model.outputs.max(1, keepdim=True)[1]
+        correct += pred.eq(labels.view_as(pred)).sum().item()
 
         print('epoch {}:, processed {} / {}'.format(epoch, epoch_iter, len(train_loader.dataset)))
 
@@ -53,8 +52,11 @@ def train(epoch, total_iter, train_loader):
             print('saving the latest model (epoch {}, total_iteration {})'.format(epoch, total_iter))
             model.save_network('latest')
 
+    accuracy = torch.tensor(correct / (len(train_loader.dataset)) * 0.8).item()
+
     print('epoch {} finish.'.format(epoch))
-    writer.add_scalar('loss/train_CrossEntropy_epoch', model.ce_loss.item(), epoch)
+    writer.add_scalars('loss/training_epoch', {'Cross_Entropy': model.ce_loss.item(),
+                                               'Accuracy': accuracy}, epoch)
 
     return total_iter
 
@@ -65,6 +67,7 @@ def validation(epoch, valid_loader):
 
         val_loss = 0
         val_iter = 0
+        correct = 0
 
         for i, (data, labels) in enumerate(valid_loader):
             if data.size(1) == 1:
@@ -74,8 +77,14 @@ def validation(epoch, valid_loader):
             val_loss += model.validation(data, labels)
             val_iter += 1
 
+            pred = model.outputs.max(1, keepdim=True)[1]
+            correct += pred.eq(labels.view_as(pred)).sum().item()
+
         val_loss /= val_iter
-        writer.add_scalar('loss/validation_CrossEntropy_epoch', val_loss, epoch)
+        accuracy = torch.tensor(correct / (0.2*len(valid_loader.dataset))).item()
+
+        writer.add_scalars('loss/validation_epoch', {'Cross_Entropy': val_loss,
+                                                     'Accuracy': accuracy}, epoch)
         return val_loss
 
 
@@ -86,36 +95,13 @@ def main():
         train_loader = create_dataloader(opt, is_train=True)
         valid_loader = create_dataloader(opt, is_train=False)
     else:
-        # transform = transforms.Compose(
-        #     [transforms.Scale(224, Image.BICUBIC),
-        #      transforms.ToTensor(),
-        #      transforms.Normalize((0.5, 0.5, 0.5),
-        #                           (0.5, 0.5, 0.5))]
-        # )
-        # kwargs = {'num_workers': 1, 'pin_memory': True} if opt.gpu_id > -1 else {}
-        # if opt.data_type == 'CIFAR100':
+        # splited_dataloader = SplitedDataLoader
+        # splited_dataloader.initialize(opt, )
+        # # train_loader = SplitedDataLoader().initialize(opt, is_train=True)
+        # # train_loader = SplitedDataLoader()
+        # # train_loader.initialize(opt, is_train=True)
+        # valid_loader = SplitedDataLoader().initialize(opt, is_train=False)
         train_loader, valid_loader = data_loader.get_train_valid_loader(opt, valid_size=0.2)
-
-
-            # train_loader = torch.utils.data.DataLoader(
-            #     datasets.CIFAR100('../DATASET/CIFAR100', train=True, download=True,
-            #                       transform=transform),
-            #     batch_size=opt.batch_size, shuffle=True, **kwargs)
-            # valid_loader = torch.utils.data.DataLoader(
-            #     datasets.CIFAR100('../DATASET/CIFAR100', train=False, transform=transform),
-            #     batch_size=opt.batch_size, shuffle=True, **kwargs)
-        # elif opt.data_type == 'MNIST':
-        #     train_loader = torch.utils.data.DataLoader(
-        #         datasets.MNIST('../DATASET/MNIST', train=True, download=True,
-        #                        transform=transform),
-        #         batch_size=opt.batch_size, shuffle=True, **kwargs)
-        #     valid_loader = torch.utils.data.DataLoader(
-        #         datasets.MNIST('../DATASET/MNIST', train=False, transform=transform),
-        #         batch_size=opt.batch_size, shuffle=True, **kwargs)
-        # else:
-        #     raise NotImplementedError('{} cannot be recognized!'.format(opt.data_type))
-
-    print('dataset size:', len(train_loader.dataset))
 
     for epoch in range(opt.epochs):
         total_iter = train(epoch, total_iter, train_loader)

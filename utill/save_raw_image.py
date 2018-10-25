@@ -46,19 +46,25 @@ def save_classified_image(iteration, opt, data, real_labels, fake_labels):
 
     save_root_dir = os.path.join(opt.results_dir, opt.name, opt.which_epoch)
 
-    for real_label, fake_label in zip(real_labels, fake_labels):
+    for i, (real_label, fake_label) in enumerate(zip(real_labels, fake_labels)):
         img_np = tensor2im(data)
 
-        if real_label == fake_label:
-            save_dir = os.path.join(save_root_dir, 'correctly_classified', str(real_label))
-            if not os.path.exists(save_dir):
-                os.makedirs(save_dir)
-            img_name = '{}.png'.format(iteration)
-        else:
-            save_dir = os.path.join(save_root_dir, 'miss_classified', str(fake_label))
-            if not os.path.exists(save_dir):
-                os.makedirs(save_dir)
-            img_name = '{}_missclassify_{}_as_{}.png'.format(iteration, real_label, fake_label)
+        save_dir = os.path.join(save_root_dir, str(real_label), str(fake_label))
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
+        img_name = '{}_{}_as_{}.png'.format(i+iteration, real_label, fake_label)
+
+        # if real_label == fake_label:
+        #     save_dir = os.path.join(save_root_dir, 'correctly_classified', str(real_label))
+        #     if not os.path.exists(save_dir):
+        #         os.makedirs(save_dir)
+        #     img_name = '{}.png'.format(iteration)
+        # else:
+        #     save_dir = os.path.join(save_root_dir, 'miss_classified', str(fake_label))
+        #     if not os.path.exists(save_dir):
+        #         os.makedirs(save_dir)
+        #     img_name = '{}_missclassify_{}_as_{}.png'.format(iteration, real_label, fake_label)
 
         img_path = os.path.join(save_dir, img_name)
         img_pil = Image.fromarray(img_np)

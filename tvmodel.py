@@ -76,6 +76,7 @@ class TVModel():
             net = models.resnet101(num_classes=self.n_classes)
         elif self.opt.model == 'resnet152':
             net = models.resnet152(num_classes=self.n_classes)
+
         else:
             raise NotImplementedError('model layer_num={} is not recognized!'
                                       .format(self.opt.model))

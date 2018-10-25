@@ -9,7 +9,34 @@ from torchvision import transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 
 
+class SplitedDataLoader():
+    def __init__(self):
+        pass
+
+    def name(self):
+        return 'SplitedDataLoader'
+
+    def initialize(self, opt, is_train, valid_size=0.2):
+        self.opt = opt
+        self.is_train = is_train
+        self.valid_size = valid_size
+        self.dataloader = get_train_valid_loader(opt, is_train)
+
+    def __iter__(self):
+        for i, (data, labels) in enumerate(self.dataloader):
+            yield data, labels
+
+    def __len__(self):
+        split = int(np.floor(self.valid_size * len(self.dataloader.dataset)))
+        print(len(self.dataloader.dataset))
+        if self.is_train:
+            return len(self.dataloader.dataset) - split
+        else:
+            return split
+
+
 def get_train_valid_loader(opt,
+                           # is_train,
                            valid_size=0.2,
                            random_seed=0,
                            shuffle=True,
@@ -86,7 +113,6 @@ def get_train_valid_loader(opt,
             root=opt.dataroot, train=True,
             download=True, transform=train_transform,
         )
-
         valid_dataset = datasets.CIFAR10(
             root=opt.dataroot, train=True,
             download=True, transform=valid_transform,
@@ -136,11 +162,15 @@ def get_train_valid_loader(opt,
     #     X = images.numpy().transpose([0, 2, 3, 1])
     #     plot_images(X, labels)
 
+    # if is_train:
+    #     return train_loader
+    # else:
+    #     return valid_loader
+
     return train_loader, valid_loader
 
 
-def get_test_loader(data_type,
-                    batch_size,
+def get_test_loader(opt,
                     shuffle=True,
                     num_workers=4,
                     pin_memory=False):
@@ -172,29 +202,26 @@ def get_test_loader(data_type,
 
     # define transform
     transform = transforms.Compose([
+        transforms.Scale(224, Image.BICUBIC),
         transforms.ToTensor(),
         normalize,
     ])
 
-    if data_type == 'CIFAR10':
-        data_dir = '../DATASET/CIFAR10'
-
+    if opt.data_type == 'CIFAR10':
         dataset = datasets.CIFAR10(
-            root=data_dir, train=False,
+            root=opt.dataroot, train=False,
             download=True, transform=transform,
         )
-    elif data_type == 'CIFAR100':
-        data_dir = '../DATASET/CIFAR100'
-
+    elif opt.data_type == 'CIFAR100':
         dataset = datasets.CIFAR100(
-            root=data_dir, train=False,
+            root=opt.dataroot, train=False,
             download=True, transform=transform,
         )
     else:
         raise NotImplementedError('{} are not implemented. We can use CIFAR10 and CIFAR100'.format(data_type))
 
     data_loader = torch.utils.data.DataLoader(
-        dataset, batch_size=batch_size, shuffle=shuffle,
+        dataset, batch_size=opt.batch_size, shuffle=shuffle,
         num_workers=num_workers, pin_memory=pin_memory,
     )
 
