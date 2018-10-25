@@ -39,6 +39,8 @@ class BaseOptions():
                             help='random seed (default: 1)')
         self.parser.add_argument('--log_interval', type=int, default=10,
                             help='how many batches to wait before logging training status')
+        self.parser.add_argument('--augumentation', action='store_true',
+                                 help='use data augumentation')
 
         self.parser.add_argument('--emb_interval', type=int, default=5,
                             help='how many epoch to wait before visualizing embedding')

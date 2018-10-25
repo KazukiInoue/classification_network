@@ -135,7 +135,7 @@ class CustomDataset():
 
         transform_list = []
 
-        if opt.phase == 'train':
+        if opt.augumentation:
             transform_list.append(transforms.Scale([256, 256], Image.BICUBIC))
             transform_list.append(transforms.RandomCrop(224))
         else:

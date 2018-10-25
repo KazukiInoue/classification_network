@@ -8,6 +8,7 @@ import torchvision
 from torchvision import datasets, transforms
 from tensorboardX import SummaryWriter
 
+import data_loader
 from options.train_options import TrainOptions
 from tvmodel import TVModel
 from custom_dataset_dataloader import create_dataloader
@@ -21,13 +22,13 @@ model = TVModel()
 model.initialize(opt)
 
 
-def train(epoch, total_iter, trainloader):
+def train(epoch, total_iter, train_loader):
 
     model.net.train()
     epoch_iter = 0
     train_loss = 0
 
-    for i, (data, labels) in enumerate(trainloader):
+    for i, (data, labels) in enumerate(train_loader):
 
         if data.size(1) == 1:
             data = torch.cat([data, data, data], 1)
@@ -46,7 +47,7 @@ def train(epoch, total_iter, trainloader):
         #     writer.add_scalar('loss/train_CrossEntropy_iteration', train_loss / 10, total_iter)
         #     train_loss = 0
 
-        print('epoch {}:, processed {} / {}'.format(epoch, epoch_iter, len(trainloader.dataset)))
+        print('epoch {}:, processed {} / {}'.format(epoch, epoch_iter, len(train_loader.dataset)))
 
         if total_iter % opt.save_latest_freq == 0:
             print('saving the latest model (epoch {}, total_iteration {})'.format(epoch, total_iter))
@@ -58,14 +59,14 @@ def train(epoch, total_iter, trainloader):
     return total_iter
 
 
-def validation(epoch, validloader):
+def validation(epoch, valid_loader):
     with torch.no_grad():
         # model.net.eval()
 
         val_loss = 0
         val_iter = 0
 
-        for i, (data, labels) in enumerate(validloader):
+        for i, (data, labels) in enumerate(valid_loader):
             if data.size(1) == 1:
                 data = torch.cat([data, data, data], 1)
             data = data.to(opt.device)
@@ -82,40 +83,43 @@ def main():
 
     total_iter = 0
     if opt.data_type == 'raw_image':
-        trainloader = create_dataloader(opt, is_train=True)
-        validloader = create_dataloader(opt, is_train=False)
+        train_loader = create_dataloader(opt, is_train=True)
+        valid_loader = create_dataloader(opt, is_train=False)
     else:
-        transform = transforms.Compose(
-            [transforms.Scale(224, Image.BICUBIC),
-             transforms.ToTensor(),
-             transforms.Normalize((0.5, 0.5, 0.5),
-                                  (0.5, 0.5, 0.5))]
-        )
-        kwargs = {'num_workers': 1, 'pin_memory': True} if opt.gpu_id > -1 else {}
-        if opt.data_type == 'CIFAR100':
-            trainloader = torch.utils.data.DataLoader(
-                datasets.CIFAR100('../DATASET/CIFAR100', train=True, download=True,
-                                  transform=transform),
-                batch_size=opt.batch_size, shuffle=True, **kwargs)
-            validloader = torch.utils.data.DataLoader(
-                datasets.CIFAR100('../DATASET/CIFAR100', train=False, transform=transform),
-                batch_size=opt.batch_size, shuffle=True, **kwargs)
-        elif opt.data_type == 'MNIST':
-            trainloader = torch.utils.data.DataLoader(
-                datasets.MNIST('../DATASET/MNIST', train=True, download=True,
-                               transform=transform),
-                batch_size=opt.batch_size, shuffle=True, **kwargs)
-            validloader = torch.utils.data.DataLoader(
-                datasets.MNIST('../DATASET/MNIST', train=False, transform=transform),
-                batch_size=opt.batch_size, shuffle=True, **kwargs)
-        else:
-            raise NotImplementedError('{} cannot be recognized!'.format(opt.data_type))
+        # transform = transforms.Compose(
+        #     [transforms.Scale(224, Image.BICUBIC),
+        #      transforms.ToTensor(),
+        #      transforms.Normalize((0.5, 0.5, 0.5),
+        #                           (0.5, 0.5, 0.5))]
+        # )
+        # kwargs = {'num_workers': 1, 'pin_memory': True} if opt.gpu_id > -1 else {}
+        # if opt.data_type == 'CIFAR100':
+        train_loader, valid_loader = data_loader.get_train_valid_loader(opt, valid_size=0.2)
 
-    print('dataset size:', len(trainloader.dataset))
+
+            # train_loader = torch.utils.data.DataLoader(
+            #     datasets.CIFAR100('../DATASET/CIFAR100', train=True, download=True,
+            #                       transform=transform),
+            #     batch_size=opt.batch_size, shuffle=True, **kwargs)
+            # valid_loader = torch.utils.data.DataLoader(
+            #     datasets.CIFAR100('../DATASET/CIFAR100', train=False, transform=transform),
+            #     batch_size=opt.batch_size, shuffle=True, **kwargs)
+        # elif opt.data_type == 'MNIST':
+        #     train_loader = torch.utils.data.DataLoader(
+        #         datasets.MNIST('../DATASET/MNIST', train=True, download=True,
+        #                        transform=transform),
+        #         batch_size=opt.batch_size, shuffle=True, **kwargs)
+        #     valid_loader = torch.utils.data.DataLoader(
+        #         datasets.MNIST('../DATASET/MNIST', train=False, transform=transform),
+        #         batch_size=opt.batch_size, shuffle=True, **kwargs)
+        # else:
+        #     raise NotImplementedError('{} cannot be recognized!'.format(opt.data_type))
+
+    print('dataset size:', len(train_loader.dataset))
 
     for epoch in range(opt.epochs):
-        total_iter = train(epoch, total_iter, trainloader)
-        validation(epoch, validloader)
+        total_iter = train(epoch, total_iter, train_loader)
+        validation(epoch, valid_loader)
 
         if epoch % opt.save_epoch_freq == 0:
             print('saving the model at the end of epoch {}, iters{}'.format(epoch, total_iter))
