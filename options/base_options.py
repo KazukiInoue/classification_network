@@ -58,7 +58,8 @@ class BaseOptions():
 
         self.opt = self.parser.parse_args()
 
-        self.opt.save_dir = os.path.join(self.opt.checkpoints_dir, self.opt.name)
+        self.opt.log_dir = os.path.join(self.opt.runs_dir, self.opt.data_type, self.opt.name)
+        self.opt.save_dir = os.path.join(self.opt.checkpoints_dir, self.opt.data_type, self.opt.name)
         if self.is_train:
             if os.path.exists(self.opt.save_dir):
                 raise ValueError('[%s] aleready exists!' % self.opt.save_dir)

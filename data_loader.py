@@ -81,31 +81,18 @@ def get_train_valid_loader(opt,
     )
 
     # define transforms
-    valid_transform = transforms.Compose([
-        transforms.Scale(224, Image.BICUBIC),
-        transforms.ToTensor(),
-        normalize,
-    ])
-    # if opt.augment:
-    #     train_transform = transforms.Compose([
-    #         transforms.Scale(224, Image.BICUBIC),
-    #         transforms.RandomCrop(32, padding=4),
-    #         transforms.RandomHorizontalFlip(),
-    #         transforms.ToTensor(),
-    #         normalize,
-    #     ])
-    # else:
-    #     train_transform = transforms.Compose([
-    #         transforms.Scale(224, Image.BICUBIC),
-    #         transforms.ToTensor(),
-    #         normalize,
-    #     ])
+    if opt.model == 'lenet':
+        resize = 32
+    else:
+        resize = 224
 
     train_transform = transforms.Compose([
-            transforms.Scale(224, Image.BICUBIC),
+            transforms.Scale(resize, Image.BICUBIC),
             transforms.ToTensor(),
             normalize,
         ])
+
+    valid_transform = train_transform
 
     # load the dataset
     if opt.data_type == 'CIFAR10':

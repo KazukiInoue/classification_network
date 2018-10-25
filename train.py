@@ -15,7 +15,7 @@ from custom_dataset_dataloader import create_dataloader
 parser = argparse.ArgumentParser(description='Classification')
 
 opt = TrainOptions().parse()
-writer = SummaryWriter(os.path.join(opt.runs_dir, opt.name, 'loss'))
+writer = SummaryWriter(os.path.join(opt.log_dir))
 
 model = TVModel()
 model.initialize(opt)
