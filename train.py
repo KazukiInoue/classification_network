@@ -50,6 +50,7 @@ def train(epoch, total_iter, train_loader):
 
         print('epoch {}:, processed {} / {}'.format(epoch, epoch_iter, loader_size))
 
+
         if total_iter % opt.save_latest_freq == 0:
             print('saving the latest model (epoch {}, total_iteration {})'.format(epoch, total_iter))
             model.save_network('latest')
@@ -59,6 +60,9 @@ def train(epoch, total_iter, train_loader):
     print('epoch {} finish.'.format(epoch))
     writer.add_scalars('loss/training_epoch', {'Cross_Entropy': model.ce_loss.item(),
                                                'Accuracy': accuracy}, epoch)
+
+    for param in model.optimizer.param_groups:
+        print(param['lr'])
 
     return total_iter
 

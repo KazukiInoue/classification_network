@@ -1,11 +1,13 @@
 import os
 import numpy as np
 
+from models import alexnet_bn
+
 import torch
 from torch import nn
 from torch.nn import functional as F
 from torchvision import models
-
+from torch.optim import lr_scheduler
 
 class LeNet(nn.Module):
   def __init__(self, num_classes):
@@ -50,17 +52,18 @@ class TVModel():
         self.criterion_ce = nn.CrossEntropyLoss()
         # self.optimizer = torch.optim.Adam(self.net.parameters(),
         #                                   lr=0.002, betas=(0.5, 0.999))
-        self.optimizer = torch.optim.SGD(self.net.parameters(), lr=0.001, momentum=0.9)
-        if not opt.is_train:
+        self.optimizer = torch.optim.SGD(self.net.parameters(), lr=0.001, momentum=0.9, weight_decay=opt.weight_decay)
+
+        if opt.is_train:
+            self.shedulers = self.get_scheduler()
+        else:
             if opt.auto_test:
                 save_filename = filename
             else:
                 save_filename = '{}_{}.pth'.format(opt.which_epoch, opt.model)
+            self.labels_list = [[], []]
 
             self.load_network(self.net, save_filename)
-
-        if not opt.is_train:
-            self.labels_list = [[], []]
 
         # print('---------- Networks initialized -------------')
         # self.print_network()
@@ -70,6 +73,8 @@ class TVModel():
 
         if self.opt.model == 'alexnet':
             net = models.AlexNet(num_classes=self.n_classes)
+        elif self.opt.model == 'alexnet_bn':
+            net = alexnet_bn(num_classes=self.n_classes)
 
         elif self.opt.model == 'vgg11':
             net = models.vgg11(num_classes=self.n_classes)
@@ -160,3 +165,7 @@ class TVModel():
             num_params += param.numel()
         print(self.net)
         print('Total number of parameters: %d' % num_params)
+
+    def get_scheduler(self):
+        scheduler = lr_scheduler.StepLR(self.optimizer, step_size=self.opt.lr_decay_iters, gamma=0.1)
+        return scheduler

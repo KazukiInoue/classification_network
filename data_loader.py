@@ -186,11 +186,16 @@ def get_test_loader(opt,
     )
 
     # define transform
+    if opt.model == 'lenet':
+        resize = 32
+    else:
+        resize = 224
+
     transform = transforms.Compose([
-        transforms.Scale(224, Image.BICUBIC),
-        transforms.ToTensor(),
-        normalize,
-    ])
+            transforms.Scale(resize, Image.BICUBIC),
+            transforms.ToTensor(),
+            normalize,
+        ])
 
     if opt.data_type == 'CIFAR10':
         dataset = datasets.CIFAR10(
