@@ -30,7 +30,7 @@ class LeNet(nn.Module):
     return out
 
 
-class TVModel():
+class ClassificationModel():
 
     def initialize(self, opt, filename=None):
         self.opt = opt
@@ -57,6 +57,8 @@ class TVModel():
         if opt.is_train:
             self.shedulers = self.get_scheduler()
         else:
+        self.optimizer = torch.optim.SGD(self.net.parameters(), lr=opt.lr, momentum=0.9)
+        if not opt.is_train:
             if opt.auto_test:
                 save_filename = filename
             else:
