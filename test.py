@@ -11,11 +11,12 @@ from torchvision import datasets, transforms
 import data_loader
 from options.test_options import TestOptions
 from custom_dataset_dataloader import create_dataloader
-from tvmodel import TVModel
+from classification_model import ClassificationModel
 from utill.save_raw_image import save_classified_image
 
 opt = TestOptions().parse()
 opt.batch_size = 1
+
 
 
 def main(test_loader, model, filename=None):
@@ -85,12 +86,14 @@ def main(test_loader, model, filename=None):
 
 if __name__ == '__main__':
 
+    print(opt.name)
+
     if opt.data_type == 'raw_image':
         test_loader = create_dataloader(opt, is_train=False)
     else:
         test_loader = data_loader.get_test_loader(opt)
 
-    model = TVModel()
+    cls_model = ClassificationModel()
 
     print('data size: ', len(test_loader.dataset))
 
