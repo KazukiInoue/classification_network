@@ -52,13 +52,11 @@ class ClassificationModel():
         self.criterion_ce = nn.CrossEntropyLoss()
         # self.optimizer = torch.optim.Adam(self.net.parameters(),
         #                                   lr=0.002, betas=(0.5, 0.999))
-        self.optimizer = torch.optim.SGD(self.net.parameters(), lr=0.001, momentum=0.9, weight_decay=opt.weight_decay)
+        self.optimizer = torch.optim.SGD(self.net.parameters(), lr=opt.lr, momentum=0.9, weight_decay=opt.weight_decay)
 
         if opt.is_train:
             self.shedulers = self.get_scheduler()
         else:
-        self.optimizer = torch.optim.SGD(self.net.parameters(), lr=opt.lr, momentum=0.9)
-        if not opt.is_train:
             if opt.auto_test:
                 save_filename = filename
             else:
